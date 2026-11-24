@@ -23,7 +23,7 @@ CONFIG = dict(
         ("leetcode.com/u/ravnit", "https://leetcode.com/u/ravnit/", "leetcode"),
         ("yravnit@gmail.com", "mailto:yravnit@gmail.com", "gmail"),
     ],
-    relay=True,   # True: the project GIFs take turns. False: they all play at once.
+    relay=False,  # True: the project GIFs take turns. False: they all play at once.
     tagline=["Pursuing Engineering in Mumbai", "AI Engineer Intern at BankIQ", "Love making Full Stack Systems and AI Applications"],
     # font is your own Ethnocentric file (kept out of the repo, see fonts/README.txt). width is the name width in px.
     name=dict(text="RAVNIT YADAV", font="fonts/Ethnocentric-Regular.ttf", width=960, tracking=.07, weight=2.5),
@@ -103,8 +103,8 @@ def svg(w, h, body, title, border="all", fill=PANEL):
     return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}" role="img">'
             f'<title>{esc(title)}</title><rect width="{w}" height="{h}" fill="{fill}"/>{body}{ln}</svg>')
 
-def label(x, y, t, size=11, fill=DIM, anchor="start", ls=2):
-    return (f'<text x="{x}" y="{y}" font-family=\'{MONO}\' font-size="{size}" fill="{fill}" '
+def label(x, y, t, size=11, fill=DIM, anchor="start", ls=2, weight=400):
+    return (f'<text x="{x}" y="{y}" font-family=\'{MONO}\' font-size="{size}" fill="{fill}" font-weight="{weight}" '
             f'letter-spacing="{ls}" text-anchor="{anchor}">{esc(t)}</text>')
 
 def text(x, y, t, size, fill=TEXT, family=MONO, weight=400, anchor="start", ls=0):
@@ -252,6 +252,7 @@ THUMBS = dict(pipeline=thumb_pipeline, terrain=thumb_terrain, graph=thumb_graph,
 MEDIA_EXT = (".gif", ".jpeg", ".jpg", ".png", ".webp")      # first match wins, so a gif beats a jpeg
 RATIO = 594/321                                             # card image shape, close to a 1080p recording
 GIF_W, STILL_W, HOLD_MS, MIN_FRAME_MS = 800, 1188, 1500, 70
+WEBP_Q = 45                                                  # small-UI-text legibility ceiling; flat dithered art comes out smaller lossless, so the encoder keeps whichever wins
 
 def find_media(p):
     if p.get("media") and os.path.exists(os.path.join(HERE, p["media"])): return os.path.join(HERE, p["media"])
@@ -329,8 +330,14 @@ def build_media(projects):
             if t0: seq.append((pf, t0))
             seq += list(zip(pf_frames, pf_durs)); seq.append((pf, total - t0 - sum(pf_durs))); t0 += lens[k]
         else: seq = list(zip(frames, durs))
-        name = f"media-{k}.gif"; path = os.path.join(HERE, name)
-        ims, ds = zip(*seq); ims[0].save(path, save_all=True, append_images=list(ims[1:]), duration=[int(d) for d in ds], loop=0, optimize=True, disposal=1)
+        name = f"media-{k}.webp"; path = os.path.join(HERE, name)
+        ims, ds = zip(*seq); ims = [im.convert("RGB") for im in ims]
+        def enc(**kw):
+            buf = io.BytesIO()
+            ims[0].save(buf, "WEBP", save_all=True, append_images=ims[1:], duration=[int(d) for d in ds],
+                         loop=0, method=4, **kw)
+            return buf.getvalue()
+        with open(path, "wb") as f: f.write(min(enc(quality=WEBP_Q), enc(lossless=True), key=len))
         out[k] = (name, f"your gif, {'relay slot' if relay else 'plays on its own'}")
     if relay: print(f"relay loop: {total/1000:.1f}s across {len(gifs)} gifs")
     return out
@@ -347,17 +354,17 @@ def card(p):
               f'<rect x="{bx}" y="{by}" width="30" height="{bh}" fill="url(#wip)"/>'
               f'<line x1="{bx+30}" y1="{by}" x2="{bx+30}" y2="{by+bh}" stroke="{ACC}"/>'
               + text(bx+30+(bw-30)/2, by+18, "WORK IN PROGRESS", 11, ACC, MONO, 700, "middle", 1.2))
-    for i, l in enumerate(p["desc"]): b += text(24, 82 + i*21, l, 13.5, "#b9b4d8")
+    for i, l in enumerate(p["desc"]): b += text(24, 82 + i*22, l, 15, "#b9b4d8")
     b += line(0, 148, W, 148)
     lx = 24
     for slug in p["logos"]:
         b += icon(slug, lx, 160, 24); lx += 24 + 14
     if p.get("url"):
         lab = "OPEN REPO ->"; bw = 40 + 9.2*len("OPEN REPO") + 22
-        b += f'<rect x="{W-24-bw}" y="159" width="{bw}" height="26" fill="{ACC}"/>' + text(W-24-bw/2, 177, lab, 12, BG, MONO, 700, "middle", 1)
+        b += f'<rect x="{W-24-bw}" y="159" width="{bw}" height="26" fill="{ACC}"/>' + text(W-24-bw/2, 177, lab, 12, BG, MONO, 800, "middle", 1)
     else:
         lab = "PRIVATE REPO"; bw = 40 + 9.2*len("PRIVATE REPO") + 22
-        b += f'<rect x="{W-24-bw}" y="159.5" width="{bw}" height="25" fill="none" stroke="{DIM}" stroke-dasharray="4 3"/>' + text(W-24-bw/2, 177, lab, 12, DIM, MONO, 700, "middle", 1)
+        b += f'<rect x="{W-24-bw}" y="159.5" width="{bw}" height="25" fill="none" stroke="{DIM}" stroke-dasharray="4 3"/>' + text(W-24-bw/2, 177, lab, 12, DIM, MONO, 800, "middle", 1)
     write(f"card-{p['slug']}.svg", svg(W, H, b, f"{p['name']}: {' '.join(p['desc'])}", "lrb"))
 
 def name_path():
@@ -386,11 +393,11 @@ def identity():
 
 def stack():
     rows = len(STACK); H = 52 + rows*58
-    b = text(24, 33, "stack", 14) + text(1176, 33, "what I reach for", 13, DIM, anchor="end") + line(0, 52, 1200, 52)
+    b = text(24, 33, "stack", 14, weight=700) + text(1176, 33, "what I reach for", 13, DIM, anchor="end", weight=700) + line(0, 52, 1200, 52)
     for r, (name, chips) in enumerate(STACK):
         y = 52 + r*58
         if r: b += line(0, y, 1200, y)
-        b += label(24, y+34, name.upper(), 11) + line(190, y, 190, y+58)
+        b += label(24, y+34, name.upper(), 11, weight=700) + line(190, y, 190, y+58)
         x = 214
         for t, slug in chips:
             w = 14 + 16 + 9 + 8.1*len(t) + 14

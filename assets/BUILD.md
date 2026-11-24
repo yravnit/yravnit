@@ -12,7 +12,7 @@ Before the first run, put your own `Ethnocentric-Regular.ttf` in `fonts/` and ke
 - `build.py` writes the cards, the name box, the stack grid, the link tiles, the project media and `../README.md`.
 - `hero.py` renders `hero.gif` from a black hole GIF: `python hero.py path/to/blackhole.gif`.
 - `bankiq_gif.py` renders `bankiq.gif`. Change `WORDMARK` or `ROLE` at the top, then run it.
-- `drag.gif`, `psh.gif`, `snag.gif` are the project recordings. A `.jpeg`, `.jpg` or `.png` with the same name works when there is no GIF. A GIF wins.
+- `drag.gif`, `psh.gif`, `snag.gif` are the project recordings. A `.jpeg`, `.jpg` or `.png` with the same name works when there is no GIF. A GIF wins. Animated recordings are written as `media-<slug>.webp` (quality in `WEBP_Q`) because it is far smaller than GIF.
 - `icons.json` holds the logos. Sources and licenses are in `ICONS-LICENSE.txt`.
 
 ## Switches in build.py
