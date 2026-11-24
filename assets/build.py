@@ -104,11 +104,13 @@ def svg(w, h, body, title, border="all", fill=PANEL):
             f'<title>{esc(title)}</title><rect width="{w}" height="{h}" fill="{fill}"/>{body}{ln}</svg>')
 
 def label(x, y, t, size=11, fill=DIM, anchor="start", ls=2, weight=400):
-    return (f'<text x="{x}" y="{y}" font-family=\'{MONO}\' font-size="{size}" fill="{fill}" font-weight="{weight}" '
+    b = f' stroke="{fill}" stroke-width=".5" paint-order="stroke"' if weight >= 700 else ""     # browsers do not always synthesise mono bold in SVG, so fake the weight
+    return (f'<text x="{x}" y="{y}" font-family=\'{MONO}\' font-size="{size}" fill="{fill}" font-weight="{weight}"{b} '
             f'letter-spacing="{ls}" text-anchor="{anchor}">{esc(t)}</text>')
 
-def text(x, y, t, size, fill=TEXT, family=MONO, weight=400, anchor="start", ls=0):
-    return (f'<text x="{x}" y="{y}" font-family=\'{family}\' font-size="{size}" font-weight="{weight}" '
+def text(x, y, t, size, fill=TEXT, family=MONO, weight=400, anchor="start", ls=0, stroke=0):
+    b = f' stroke="{fill}" stroke-width="{stroke}" paint-order="stroke"' if stroke else ""
+    return (f'<text x="{x}" y="{y}" font-family=\'{family}\' font-size="{size}" font-weight="{weight}"{b} '
             f'fill="{fill}" letter-spacing="{ls}" text-anchor="{anchor}">{esc(t)}</text>')
 
 def line(x1, y1, x2, y2): return f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{LINE}"/>'
@@ -361,10 +363,10 @@ def card(p):
         b += icon(slug, lx, 160, 24); lx += 24 + 14
     if p.get("url"):
         lab = "OPEN REPO ->"; bw = 40 + 9.2*len("OPEN REPO") + 22
-        b += f'<rect x="{W-24-bw}" y="159" width="{bw}" height="26" fill="{ACC}"/>' + text(W-24-bw/2, 177, lab, 12, BG, MONO, 800, "middle", 1)
+        b += f'<rect x="{W-24-bw}" y="159" width="{bw}" height="26" fill="{ACC}"/>' + text(W-24-bw/2, 177, lab, 12, BG, MONO, 900, "middle", 1, stroke=.35)
     else:
         lab = "PRIVATE REPO"; bw = 40 + 9.2*len("PRIVATE REPO") + 22
-        b += f'<rect x="{W-24-bw}" y="159.5" width="{bw}" height="25" fill="none" stroke="{DIM}" stroke-dasharray="4 3"/>' + text(W-24-bw/2, 177, lab, 12, DIM, MONO, 800, "middle", 1)
+        b += f'<rect x="{W-24-bw}" y="159.5" width="{bw}" height="25" fill="none" stroke="{DIM}" stroke-dasharray="4 3"/>' + text(W-24-bw/2, 177, lab, 12, TEXT, MONO, 900, "middle", 1, stroke=.5)
     write(f"card-{p['slug']}.svg", svg(W, H, b, f"{p['name']}: {' '.join(p['desc'])}", "lrb"))
 
 def name_path():
@@ -393,11 +395,11 @@ def identity():
 
 def stack():
     rows = len(STACK); H = 52 + rows*58
-    b = text(24, 33, "stack", 14, weight=700) + text(1176, 33, "what I reach for", 13, DIM, anchor="end", weight=700) + line(0, 52, 1200, 52)
+    b = text(24, 33, "stack", 14, weight=700) + text(1176, 33, "what I reach for", 13, TEXT, anchor="end", weight=900, stroke=.6) + line(0, 52, 1200, 52)
     for r, (name, chips) in enumerate(STACK):
         y = 52 + r*58
         if r: b += line(0, y, 1200, y)
-        b += label(24, y+34, name.upper(), 11, weight=700) + line(190, y, 190, y+58)
+        b += label(24, y+34, name.upper(), 11, TEXT, weight=900) + line(190, y, 190, y+58)
         x = 214
         for t, slug in chips:
             w = 14 + 16 + 9 + 8.1*len(t) + 14
