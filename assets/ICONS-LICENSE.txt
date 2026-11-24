@@ -1,0 +1,6 @@
+Logos come from these sources, embedded in icons.json:
+- Simple Icons (CC0): most brand logos.
+- SVG Logos by Gil Barbara (CC0): LlamaIndex, Pinecone, Firecrawl.
+- VSCode Icons (MIT): the SQL mark.
+- Lucide (ISC): the stroke icons.
+- Streamline Color by Streamline, licensed CC BY 4.0, https://creativecommons.org/licenses/by/4.0/ : the LLM mark ("artificial-intelligence-spark").
